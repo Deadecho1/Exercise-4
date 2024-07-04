@@ -17,25 +17,11 @@ exports.submitVacation = async (req, res, next) => {
         const accessCode = req.params.userCode;
         const { startDate, endDate, destination, vacationType } = req.body;
 
-        if(!startDate || !endDate || !destination || !vacationType){
-            return res.status(400).send('Invalid request body format');
+        try{
+            validateVacationDetails(startDate, endDate, destination, vacationType);
         }
-
-        const formattedStartDate = moment(startDate, 'DD/MM/YYYY').format('YYYY-MM-DD');
-        const formattedEndDate = moment(endDate, 'DD/MM/YYYY').format('YYYY-MM-DD');
-
-        if (!moment(startDate, 'DD/MM/YYYY', true).isValid() || !moment(endDate, 'DD/MM/YYYY', true).isValid()) {
-            return res.status(400).send('Invalid date format. Please use DD/MM/YYYY.');
-        }
-
-        const vacationLengthInDays = moment(formattedEndDate).diff(moment(formattedStartDate), 'days');
-
-        if (vacationLengthInDays > 7) {
-            return res.status(400).send('Vacation length cannot exceed a week (7 days).');
-        }
-
-        if (!data.destinations.includes(destination) || !data.vacationTypes.includes(vacationType)) {
-            return res.status(400).send('Invalid destination or vacation type');
+        catch(error){
+            return res.status(400).send(error.message);
         }
 
         const connection = await pool.getConnection();
@@ -46,6 +32,8 @@ exports.submitVacation = async (req, res, next) => {
             }
 
             const userId = userResults[0].id;
+            const formattedStartDate = moment(startDate, 'DD/MM/YYYY').format('YYYY-MM-DD');
+            const formattedEndDate = moment(endDate, 'DD/MM/YYYY').format('YYYY-MM-DD');
 
             const [vacationResults] = await connection.query('SELECT * FROM tbl_38_vacation_details WHERE user_id = ?', [userId]);
             if (vacationResults.length > 0) {
@@ -65,29 +53,15 @@ exports.submitVacation = async (req, res, next) => {
 };
 
 exports.updateVacation = async (req, res, next) => {
-    const accessCode = req.params.userCode;
-    const { startDate, endDate, destination, vacationType } = req.body;
-
-    if(!startDate || !endDate || !destination || !vacationType){
-        return res.status(400).send('Invalid request body format');
-    }
-
-    const formattedStartDate = moment(startDate, 'DD/MM/YYYY').format('YYYY-MM-DD');
-    const formattedEndDate = moment(endDate, 'DD/MM/YYYY').format('YYYY-MM-DD');
-
     try {
-        if (!moment(startDate, 'DD/MM/YYYY', true).isValid() || !moment(endDate, 'DD/MM/YYYY', true).isValid()) {
-            return res.status(400).send('Invalid date format. Please use DD/MM/YYYY.');
+        const accessCode = req.params.userCode;
+        const { startDate, endDate, destination, vacationType } = req.body;
+
+        try{
+            validateVacationDetails(startDate, endDate, destination, vacationType);
         }
-
-        const vacationLengthInDays = moment(formattedEndDate).diff(moment(formattedStartDate), 'days');
-
-        if (vacationLengthInDays > 7) {
-            return res.status(400).send('Vacation length cannot exceed a week (7 days).');
-        }
-
-        if (!data.destinations.includes(destination) || !data.vacationTypes.includes(vacationType)) {
-            return res.status(400).send('Invalid destination or vacation type');
+        catch(error){
+            return res.status(400).send(error.message);
         }
 
         const connection = await pool.getConnection();
@@ -98,6 +72,8 @@ exports.updateVacation = async (req, res, next) => {
             }
 
             const userId = userResults[0].id;
+            const formattedStartDate = moment(startDate, 'DD/MM/YYYY').format('YYYY-MM-DD');
+            const formattedEndDate = moment(endDate, 'DD/MM/YYYY').format('YYYY-MM-DD');
 
             await connection.query(
                 'UPDATE tbl_38_vacation_details SET start_date = ?, end_date = ?, destination = ?, vacation_type = ?, submit_time = NOW() WHERE user_id = ?',
@@ -110,6 +86,29 @@ exports.updateVacation = async (req, res, next) => {
         }
     } catch (error) {
         next(error);
+    }
+};
+
+const validateVacationDetails = (startDate, endDate, destination, vacationType) => {
+    if(!startDate || !endDate || !destination || !vacationType){
+        throw new Error('Invalid request body format');
+    }
+
+    const formattedStartDate = moment(startDate, 'DD/MM/YYYY', true);
+    const formattedEndDate = moment(endDate, 'DD/MM/YYYY', true);
+
+    if (!formattedStartDate.isValid() || !formattedEndDate.isValid()) {
+        throw new Error('Invalid date format. Please use DD/MM/YYYY.');
+    }
+
+    const vacationLengthInDays = moment(endDate, 'DD/MM/YYYY').diff(moment(startDate, 'DD/MM/YYYY'), 'days');
+
+    if (vacationLengthInDays > 7) {
+        throw new Error('Vacation length cannot exceed a week (7 days).');
+    }
+
+    if (!data.destinations.includes(destination) || !data.vacationTypes.includes(vacationType)) {
+        throw new Error('Invalid destination or vacation type');
     }
 };
 
