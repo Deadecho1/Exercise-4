@@ -30,11 +30,12 @@ exports.register = async (req, res, next) => {
 
 exports.login = async (req, res, next) => {
     try {
-        const { username, password } = req.query;
+        const { username, password } = req.body;
 
         const connection = await pool.getConnection();
         try {
           const [userResults] = await connection.query('SELECT * FROM tbl_38_users WHERE username = ?', [username]);
+          console.log(username);
           if (userResults.length === 0){
               return res.status(400).send('Invalid username');
           }
