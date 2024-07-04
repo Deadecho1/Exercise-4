@@ -35,8 +35,11 @@ exports.login = async (req, res, next) => {
         const connection = await pool.getConnection();
         try {
           const [userResults] = await connection.query('SELECT * FROM tbl_38_users WHERE username = ?', [username]);
-          if (userResults.length === 0 || !(password == userResults[0].password)) {
-              return res.status(400).send('Invalid username or password');
+          if (userResults.length === 0){
+              return res.status(400).send('Invalid username');
+          }
+          else if (!(password == userResults[0].password)) {
+              return res.status(400).send('Invalid password');
           }
           res.status(200).send({ accessCode: userResults[0].access_code });
         }
