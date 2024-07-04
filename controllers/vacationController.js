@@ -17,6 +17,10 @@ exports.submitVacation = async (req, res, next) => {
         const accessCode = req.params.userCode;
         const { startDate, endDate, destination, vacationType } = req.body;
 
+        if(!startDate || !endDate || !destination || !vacationType){
+            return res.status(400).send('Invalid request body format');
+        }
+
         const formattedStartDate = moment(startDate, 'DD/MM/YYYY').format('YYYY-MM-DD');
         const formattedEndDate = moment(endDate, 'DD/MM/YYYY').format('YYYY-MM-DD');
 
@@ -63,6 +67,10 @@ exports.submitVacation = async (req, res, next) => {
 exports.updateVacation = async (req, res, next) => {
     const accessCode = req.params.userCode;
     const { startDate, endDate, destination, vacationType } = req.body;
+
+    if(!startDate || !endDate || !destination || !vacationType){
+        return res.status(400).send('Invalid request body format');
+    }
 
     const formattedStartDate = moment(startDate, 'DD/MM/YYYY').format('YYYY-MM-DD');
     const formattedEndDate = moment(endDate, 'DD/MM/YYYY').format('YYYY-MM-DD');
@@ -141,7 +149,7 @@ exports.getVacationResults = async (req, res, next) => {
         try {
             const [results] = await connection.query('SELECT * FROM tbl_38_vacation_details');
             if (results.length < 5) {
-                return res.status(400).send('Not all friends have submitted their details');
+                return res.send('Not all friends have submitted their details');
             }
 
             // Fetch the row with the earliest submit time
