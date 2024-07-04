@@ -13,7 +13,7 @@ app.use('/auth', authRouter);
 app.use('/vacation', vacationRoute);
 
 app.use(errorHandler);
-app.all('*', (req, res) => res.send("Incorrect API format. See documentation for details."));
+app.all('*', (req, res) => res.send("Incorrect API format. See documentation at https://documenter.getpostman.com/view/36713810/2sA3dyhAtf for details."));
 
 const port = process.env.PORT || 8080;
 app.listen(port, () => {
